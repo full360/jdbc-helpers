@@ -41,7 +41,7 @@ JDBCHelpers::Execute.new(
   conn,
   "insert into test values(12345,'chicken','2016-07-01T23:23:23.000','2016-07-01');"
 )
- d
+
 JDBCHelpers::Execute.new(
   conn,
   "insert into test values(12346,'turkey','2016-07-01T23:23:23.000','2016-07-01');"
