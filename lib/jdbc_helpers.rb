@@ -124,8 +124,6 @@ module JDBCHelpers
       # get basic metadata for the recordset
       meta = rs.getMetaData
       cols = meta.getColumnCount.to_i
-      
-      puts meta.public_methods.sort
 
       # loop through the records to add them into hash
       while rs.next do
