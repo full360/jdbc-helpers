@@ -124,6 +124,8 @@ module JDBCHelpers
       # get basic metadata for the recordset
       meta = rs.getMetaData
       cols = meta.getColumnCount.to_i
+      
+      puts meta.public_methods.sort
 
       # loop through the records to add them into hash
       while rs.next do
@@ -132,9 +134,9 @@ module JDBCHelpers
 
         # add each row to r
         (1..cols).each do |c|
-          r[meta.column_name(c)] = rs.getObject(c)
-          if convert_to_string_classes.include?(r[meta.column_name(c)].class)
-            r[meta.column_name(c)] = r[meta.column_name(c)].to_s
+          r[meta.get_column_name(c)] = rs.getObject(c)
+          if convert_to_string_classes.include?(r[meta.get_column_name(c)].class)
+            r[meta.get_column_name(c)] = r[meta.get_column_name(c)].to_s
           end
         end # each cols
 
@@ -195,9 +197,9 @@ module JDBCHelpers
 
         # add each row to r
         (1..cols).each do |c|
-          r[meta.column_name(c)] = rs.getObject(c)
-          if convert_to_string_classes.include?(r[meta.column_name(c)].class)
-            r[meta.column_name(c)] = r[meta.column_name(c)].to_s
+          r[meta.get_column_name(c)] = rs.getObject(c)
+          if convert_to_string_classes.include?(r[meta.get_column_name(c)].class)
+            r[meta.get_column_name(c)] = r[meta.get_column_name(c)].to_s
           end
         end # each cols
 
@@ -253,9 +255,9 @@ module JDBCHelpers
 
         # add each row to r
         (1..cols).each do |c|
-          r[meta.column_name(c)] = rs.getObject(c)
-          if convert_to_string_classes.include?(r[meta.column_name(c)].class)
-            r[meta.column_name(c)] = r[meta.column_name(c)].to_s
+          r[meta.get_column_name(c)] = rs.getObject(c)
+          if convert_to_string_classes.include?(r[meta.get_column_name(c)].class)
+            r[meta.get_column_name(c)] = r[meta.get_column_name(c)].to_s
           end
         end # each cols
 
