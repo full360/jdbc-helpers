@@ -228,8 +228,10 @@ module JDBCHelpers
       @logger.info "executing query: #{cleanse_statement(statement)}"
       start = Time.new.utc
       rs = stmt.execute_query(statement)
-      @logger.info "query executed #{Time.new.utc - start} seconds"
-      rs_to_json_file(rs, file_object, formatter)
+      @logger.info "query executed initial results #{Time.new.utc - start} seconds"
+      record_count = rs_to_json_file(rs, file_object, formatter)
+      @logger.info "query export time #{Time.new.utc - start} seconds"
+      @logger.info "#{record_count} rows exported"
     end
 
     # outputs a JDBC result set to a formatted file
@@ -244,7 +246,8 @@ module JDBCHelpers
       # get basic metadata for the recordset
       meta = rs.getMetaData
       cols = meta.getColumnCount.to_i
-
+      
+      record_count = 0
       # loop through the records to add them into hash
       while rs.next do
 
@@ -261,7 +264,9 @@ module JDBCHelpers
 
         # formatter handles output of r to file
         formatter.call(file_object, r)
+        record_count += 1
       end # while
+      return record_count
     end
     
     # proc must handle two inputs, |file_object, record hash|
