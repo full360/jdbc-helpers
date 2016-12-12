@@ -272,7 +272,14 @@ module JDBCHelpers
     # proc must handle two inputs, |file_object, record hash|
     # @return [proc] returns proc to output json
     def json_formatter
-      Proc.new { |f,h| f.puts h.to_json }
+      Proc.new do |f,h|  
+        h.keys.each do |k| 
+          if h[k].class == Float
+            h[k] = nil if (h[k].nan? or h[k].infinite?)
+          end
+        end
+        f.puts h.to_json 
+      end
     end
   end # class
 end

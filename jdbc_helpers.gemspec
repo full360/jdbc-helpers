@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'jdbc_helpers'
-  s.version     = '0.0.4'
+  s.version     = '0.0.5'
   s.date        = '2016-07-01'
   s.summary     = "helpers for jdbc interaction"
   s.description = "allows for easy conversion of query results to hashes, arrays of hashes, json files, etc."
