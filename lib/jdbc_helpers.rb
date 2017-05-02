@@ -19,10 +19,10 @@ module JDBCHelpers
         '<removed>'
       ).gsub(/\s+/,' ')
     end
-    
+
     # Array of classes that should be casted to Strings
     # @return [Array<Class>]
-    def convert_to_string_classes
+    def convert_to_ruby_time_classes
       [Java::JavaSql::Timestamp, Java::JavaSql::Date]
     end
   end
@@ -30,11 +30,11 @@ module JDBCHelpers
   # Creates a discreet JDBC connection and makes it available via connection attribute
   class ConnectionFactory < JDBCHelpers::Base
     attr_accessor :connection
-    
+
     # @param [String] jdbc_url
     # @param [String] db_user
     # @param [String] db_pass
-    # @param [Logger] logger object otherwise will default to new Logger 
+    # @param [Logger] logger object otherwise will default to new Logger
     def initialize(jdbc_url, db_user, db_pass, logger = nil)
       @logger = logger ? logger : Logger.new(STDOUT)
       @logger.info("connecting to #{jdbc_url} as user #{db_user}...")
@@ -55,7 +55,7 @@ module JDBCHelpers
 
     # @param [Object] db_connect active connection against which to execute statement
     # @param [String] statement SQL statement text
-    # @param [Logger] logger object otherwise will default to new Logger 
+    # @param [Logger] logger object otherwise will default to new Logger
     def initialize(db_connect, statement, logger = nil)
       @logger = logger ? logger : Logger.new(STDOUT)
       stmt = db_connect.create_statement
@@ -72,10 +72,10 @@ module JDBCHelpers
   class SingleValueFromQuery < JDBCHelpers::Base
     # Value of the first field from the first row. class will vary.
     attr_accessor :result
-    
+
     # @param [Object] db_connect active connection against which to execute statement
     # @param [String] statement SQL statement text
-    # @param [Logger] logger object otherwise will default to new Logger 
+    # @param [Logger] logger object otherwise will default to new Logger
     def initialize(db_connect, statement, logger = nil)
       @logger = logger ? logger : Logger.new(STDOUT)
       stmt = db_connect.create_statement
@@ -91,7 +91,7 @@ module JDBCHelpers
 
       #the below simplifies things... especially comparisons
       #if you don't like it you can write your own damn helper!
-      value = value.to_s if convert_to_string_classes.include?(value.class)
+      value = Time.at(value.get_time / 1000).utc if convert_to_ruby_time_classes.include?(value.class)
       @result = value
     end
   end
@@ -100,10 +100,10 @@ module JDBCHelpers
   class QueryResultsToArray < JDBCHelpers::Base
     # Contains the array of hashes returned from the select query
     attr_accessor :results
-  
+
     # @param [Object] db_connect active connection against which to execute statement
     # @param [String] statement SQL statement text
-    # @param [Logger] logger object otherwise will default to new Logger 
+    # @param [Logger] logger object otherwise will default to new Logger
     def initialize(db_connect, statement, logger = nil)
       @logger = logger ? logger : Logger.new(STDOUT)
       stmt = db_connect.create_statement
@@ -133,8 +133,8 @@ module JDBCHelpers
         # add each row to r
         (1..cols).each do |c|
           r[meta.get_column_name(c)] = rs.getObject(c)
-          if convert_to_string_classes.include?(r[meta.get_column_name(c)].class)
-            r[meta.get_column_name(c)] = r[meta.get_column_name(c)].to_s
+          if convert_to_ruby_time_classes.include?(r[meta.get_column_name(c)].class)
+            r[meta.get_column_name(c)] = Time.at(r[meta.get_column_name(c)].get_time / 1000).utc
           end
         end # each cols
 
@@ -154,7 +154,7 @@ module JDBCHelpers
     # @param [Object] db_connect active connection against which to execute statement
     # @param [String] statement SQL statement text
     # @param [String] key_field SQL result set field containing the key to be used in the top level of hash
-    # @param [Logger] logger object otherwise will default to new Logger 
+    # @param [Logger] logger object otherwise will default to new Logger
     def initialize(db_connect, statement, key_field, logger = nil)
       @logger = logger ? logger : Logger.new(STDOUT)
       stmt = db_connect.create_statement
@@ -196,8 +196,8 @@ module JDBCHelpers
         # add each row to r
         (1..cols).each do |c|
           r[meta.get_column_name(c)] = rs.getObject(c)
-          if convert_to_string_classes.include?(r[meta.get_column_name(c)].class)
-            r[meta.get_column_name(c)] = r[meta.get_column_name(c)].to_s
+          if convert_to_ruby_time_classes.include?(r[meta.get_column_name(c)].class)
+            r[meta.get_column_name(c)] = Time.at(r[meta.get_column_name(c)].get_time / 1000).utc
           end
         end # each cols
 
@@ -221,7 +221,7 @@ module JDBCHelpers
     # @param [String] statement SQL statement text
     # @param [IO] file_object IO object to receive the formatted results
     # @param [proc] formatter proc to handle the actual formatting, defaults to JSON if nil
-    # @param [Logger] logger object otherwise will default to new Logger 
+    # @param [Logger] logger object otherwise will default to new Logger
     def initialize(db_connect, statement, file_object, formatter = nil, logger = nil)
       @logger = logger ? logger : Logger.new(STDOUT)
       stmt = db_connect.create_statement
@@ -246,7 +246,7 @@ module JDBCHelpers
       # get basic metadata for the recordset
       meta = rs.getMetaData
       cols = meta.getColumnCount.to_i
-      
+
       record_count = 0
       # loop through the records to add them into hash
       while rs.next do
@@ -257,8 +257,8 @@ module JDBCHelpers
         # add each row to r
         (1..cols).each do |c|
           r[meta.get_column_name(c)] = rs.getObject(c)
-          if convert_to_string_classes.include?(r[meta.get_column_name(c)].class)
-            r[meta.get_column_name(c)] = r[meta.get_column_name(c)].to_s
+          if convert_to_ruby_time_classes.include?(r[meta.get_column_name(c)].class)
+            r[meta.get_column_name(c)] = Time.at(r[meta.get_column_name(c)].get_time / 1000).utc
           end
         end # each cols
 
@@ -268,17 +268,17 @@ module JDBCHelpers
       end # while
       return record_count
     end
-    
+
     # proc must handle two inputs, |file_object, record hash|
     # @return [proc] returns proc to output json
     def json_formatter
-      Proc.new do |f,h|  
-        h.keys.each do |k| 
+      Proc.new do |f,h|
+        h.keys.each do |k|
           if h[k].class == Float
             h[k] = nil if (h[k].nan? or h[k].infinite?)
           end
         end
-        f.puts h.to_json 
+        f.puts h.to_json
       end
     end
   end # class

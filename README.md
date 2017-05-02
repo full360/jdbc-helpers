@@ -1,4 +1,4 @@
-##JDBC Helpers for JRuby
+## JDBC Helpers for JRuby
 
 The classes in this library are intended to assist in interacting with JDBC databases when programming in JRuby.
 
@@ -9,11 +9,13 @@ This should work with any JDBC database, but it has only been tested with:
 * SQLite
 
 
-###Installation
+### Installation
 
-```gem install jdbc-helpers```
+```
+gem install jdbc-helpers
+```
 
-###JDBC Drivers
+### JDBC Drivers
 
 Note that you will need to include a JDBC driver into the current namespace before these methods will work:
 
